@@ -14,7 +14,17 @@
      Áp dụng đúng quy tắc đặt tên Bướu Lạc Đà (CamelCase/PascalCase) và bọc tên bằng ngoặc vuông [ ].
 
      Thiết lập và giải thích rõ các Khóa chính (PK), Khóa ngoại (FK) và Ràng buộc kiểm tra (CK).
-### PHẦN 1: KHỞI TẠO BẢNG
+### PHẦN 1: KHỞI TẠO CƠ SỞ DỮ LIỆU VÀ CÁC BẢNG
+1. Khởi tạo cơ sở dữ liệu
+
+<img width="1920" height="1080" alt="Screenshot (197)" src="https://github.com/user-attachments/assets/b05c9657-0565-4c0c-9649-9b95c42b700a" />
+
+<p align="center">Tạo Database</p>
+
+Lựa chọn đề tài: Quản lí thư viện
+
+2. Tạo các bảng dữ liệu
+
 - Bảng [DocGia] (Quản lý người dùng): lưu trữ thông tin định danh của người mượn sách.
 
 
@@ -33,6 +43,9 @@ CREATE TABLE [DocGia] (
     CONSTRAINT [PK_DocGia] PRIMARY KEY ([MaDocGia])
 );
 ```
+
+
+
 <img width="1920" height="1080" alt="Screenshot (199)" src="https://github.com/user-attachments/assets/d4ea2f60-801c-46fb-96cb-b96bd3fcfbdd" />
 <p align="center">Tạo bảng DocGia</p>
 
@@ -82,5 +95,41 @@ CREATE TABLE [PhieuMuon] (
     CONSTRAINT [CK_NgayTraHopLe] CHECK ([NgayTraDuKien] >= [NgayMuon])
 );
 ```
+
+
 <img width="1920" height="1080" alt="Screenshot (201)" src="https://github.com/user-attachments/assets/3fc4ce2e-fd27-4fee-8d0a-1efef3799344" />
 <p align="center">Tạo bảng PhieuMuon</p>
+
+3. Chèn dữ liệu vào các bảng.
+   
+<img width="1920" height="1080" alt="Screenshot (203)" src="https://github.com/user-attachments/assets/8b4c2f82-eba7-4622-a166-149ab3682085" />
+
+<p align="center">Dữ liệu đã tạo</p>
+
+###PHẦN 2:
+
+1. Các hàm có sẵn (Built-in Functions) trong SQL Server
+
+Trong SQL Server, các hàm có sẵn (built-in functions) được chia thành nhiều nhóm khác nhau dựa trên mục đích sử dụng, bao gồm:
+
+Hàm xử lý chuỗi (String Functions): LEN(), SUBSTRING(), REPLACE(), UPPER(), LOWER(), CONCAT()...
+
+Hàm toán học (Math Functions): ROUND(), ABS(), POWER(), CEILING(), FLOOR()...
+
+Hàm ngày tháng (Date/Time Functions): GETDATE(), DATEDIFF(), DATEADD(), YEAR(), MONTH(), DAY()...
+
+Hàm tập hợp (Aggregate Functions): Dùng chung với GROUP BY như SUM(), COUNT(), MAX(), MIN(), AVG().
+
+Hàm hệ thống và logic (System & Logical Functions): CAST(), CONVERT(), ISNULL(), COALESCE(), IIF(), NEWID()...
+
+
+Một vài System / Built-in Function đặc sắc:
+
+NEWID(): Hàm tạo ra một chuỗi định danh duy nhất (GUID). Điểm đặc sắc là khi kết hợp với mệnh đề ORDER BY NEWID(), ta có thể lấy ngẫu nhiên các bản ghi từ một bảng (rất hữu ích để làm tính năng "Gợi ý sách ngẫu nhiên").
+
+
+
+
+IIF(): Hàm logic hoạt động giống hệt toán tử 3 ngôi (điều kiện ? đúng : sai) trong lập trình. Giúp viết các câu lệnh rẽ nhánh ngắn gọn hơn rất nhiều so với dùng CASE WHEN.
+
+FORMAT(): Hàm định dạng dữ liệu (số, ngày tháng) dựa trên văn hóa vùng miền (Culture). Rất mạnh mẽ khi muốn format tiền tệ thành chuẩn Việt Nam (VD: 150.000 ₫).

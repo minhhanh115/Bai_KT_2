@@ -106,30 +106,200 @@ CREATE TABLE [PhieuMuon] (
 
 <p align="center">Dữ liệu đã tạo</p>
 
-###PHẦN 2:
+### PHẦN 2: XÂY DỰNG FUNCTION 
 
 1. Các hàm có sẵn (Built-in Functions) trong SQL Server
 
-Trong SQL Server, các hàm có sẵn (built-in functions) được chia thành nhiều nhóm khác nhau dựa trên mục đích sử dụng, bao gồm:
+- Trong SQL Server, các hàm có sẵn (built-in functions) được chia thành nhiều nhóm khác nhau dựa trên mục đích sử dụng, bao gồm:
 
-Hàm xử lý chuỗi (String Functions): LEN(), SUBSTRING(), REPLACE(), UPPER(), LOWER(), CONCAT()...
+-Hàm xử lý chuỗi (String Functions): LEN(), SUBSTRING(), REPLACE(), UPPER(), LOWER(), CONCAT()...
 
-Hàm toán học (Math Functions): ROUND(), ABS(), POWER(), CEILING(), FLOOR()...
+-Hàm toán học (Math Functions): ROUND(), ABS(), POWER(), CEILING(), FLOOR()...
 
-Hàm ngày tháng (Date/Time Functions): GETDATE(), DATEDIFF(), DATEADD(), YEAR(), MONTH(), DAY()...
+-Hàm ngày tháng (Date/Time Functions): GETDATE(), DATEDIFF(), DATEADD(), YEAR(), MONTH(), DAY()...
 
-Hàm tập hợp (Aggregate Functions): Dùng chung với GROUP BY như SUM(), COUNT(), MAX(), MIN(), AVG().
+-Hàm tập hợp (Aggregate Functions): Dùng chung với GROUP BY như SUM(), COUNT(), MAX(), MIN(), AVG().
 
-Hàm hệ thống và logic (System & Logical Functions): CAST(), CONVERT(), ISNULL(), COALESCE(), IIF(), NEWID()...
-
-
-Một vài System / Built-in Function đặc sắc:
-
-NEWID(): Hàm tạo ra một chuỗi định danh duy nhất (GUID). Điểm đặc sắc là khi kết hợp với mệnh đề ORDER BY NEWID(), ta có thể lấy ngẫu nhiên các bản ghi từ một bảng (rất hữu ích để làm tính năng "Gợi ý sách ngẫu nhiên").
+-Hàm hệ thống và logic (System & Logical Functions): CAST(), CONVERT(), ISNULL(), COALESCE(), IIF(), NEWID()...
 
 
+- Một vài System / Built-in Function đặc sắc:
 
+-NEWID(): Hàm tạo ra một chuỗi định danh duy nhất (GUID). Điểm đặc sắc là khi kết hợp với mệnh đề ORDER BY NEWID(), ta có thể lấy ngẫu nhiên các bản ghi từ một bảng (rất hữu ích để làm tính năng "Gợi ý sách ngẫu nhiên").
 
-IIF(): Hàm logic hoạt động giống hệt toán tử 3 ngôi (điều kiện ? đúng : sai) trong lập trình. Giúp viết các câu lệnh rẽ nhánh ngắn gọn hơn rất nhiều so với dùng CASE WHEN.
+-IIF(): Hàm logic hoạt động giống hệt toán tử 3 ngôi (điều kiện ? đúng : sai) trong lập trình. Giúp viết các câu lệnh rẽ nhánh ngắn gọn hơn rất nhiều so với dùng CASE WHEN.
 
-FORMAT(): Hàm định dạng dữ liệu (số, ngày tháng) dựa trên văn hóa vùng miền (Culture). Rất mạnh mẽ khi muốn format tiền tệ thành chuẩn Việt Nam (VD: 150.000 ₫).
+-FORMAT(): Hàm định dạng dữ liệu (số, ngày tháng) dựa trên văn hóa vùng miền (Culture). Rất mạnh mẽ khi muốn format tiền tệ thành chuẩn Việt Nam (VD: 150.000 ₫).
+
+- Lệnh SQL khai thác các hàm trên:
+
+```sql
+-- Lấy ngẫu nhiên 3 cuốn sách, định dạng tiền tệ kiểu VN và đánh giá phân loại nhanh:
+SELECT TOP 3 
+    MaSach,
+    TenSach, 
+    FORMAT(GiaBan, 'C0', 'vi-VN') AS GiaBanVND,
+    IIF(DiemDanhGia >= 8.0, N'Sách HOT', N'Sách Thường') AS PhanLoai
+FROM [Sach]
+ORDER BY NEWID();
+```
+
+2. Hàm do người dùng tự viết (User-Defined Functions - UDF)
+
+- Mục đích: UDF được tạo ra để đóng gói (encapsulate) các đoạn logic tính toán phức tạp hoặc các câu truy vấn được sử dụng lặp đi lặp lại. Việc này giúp mã SQL gọn gàng, tăng tính tái sử dụng và dễ dàng bảo trì.
+
+- Phân loại và thời điểm sử dụng:
+
+-Scalar Function (Hàm vô hướng): 
+
+  Đặc điểm: Nhận vào tham số và trả về đúng 1 giá trị đơn lẻ (INT, VARCHAR, MONEY,...).
+
+  Khi nào dùng: Khi cần thực hiện một phép tính toán học, xử lý chuỗi hoặc tính toán dựa trên ngày tháng (VD: Tính tuổi từ ngày sinh, tính tiền phạt trễ hạn).
+
+-Inline Table-Valued Function - iTVF (Hàm nội tuyến trả về bảng):
+
+  Đặc điểm: Trả về 1 bảng (Table). Bên trong hàm chỉ chứa duy nhất một câu lệnh SELECT.
+
+  Khi nào dùng: Dùng như một VIEW nhưng ưu việt hơn vì có thể truyền được tham số vào để lọc dữ liệu. Hiệu năng của iTVF rất tốt.
+
+-Multi-statement Table-Valued Function - mTVF (Hàm đa câu lệnh trả về bảng):
+
+  Đặc điểm: Trả về 1 bảng (Table). Bên trong hàm có thể chứa nhiều câu lệnh xử lý phức tạp (IF/ELSE, WHILE, biến bảng tạm DECLARE @Table TABLE).
+
+  Khi nào dùng: Khi cần phải qua nhiều bước xử lý trung gian (thêm, sửa, xóa trên bảng tạm) mới ra được tập kết quả cuối cùng.
+
+- Tại sao có nhiều hàm Built-in rồi mà vẫn cần tự viết function riêng?
+
+Bởi vì các hàm có sẵn chỉ thực hiện các thao tác nền tảng (cộng trừ, đếm ngày, cắt chuỗi...). Chúng không thể hiểu được nghiệp vụ (Business Logic) của bài toán.
+
+Ví dụ: Hàm DATEDIFF() có sẵn chỉ đếm được khoảng cách giữa 2 ngày. Nhưng hệ thống thư viện yêu cầu: "Trễ hạn bị phạt 5.000đ/ngày". Lúc này bắt buộc người lập trình phải kết hợp DATEDIFF với các phép toán nhân/chia để viết thành một UDF tên là fn_TinhTienPhat().
+
+3. Thực hành viết Function cho Database Quản lý Thư Viện
+
+-  Scalar Function (Hàm trả về một giá trị)
+
+Yêu cầu: Hệ thống thư viện quy định nếu độc giả trả sách quá hạn sẽ bị phạt 5,000 VND / 1 ngày. Viết hàm truyền vào ngày trả dự kiến và ngày thực trả để tính ra số tiền phạt.
+
+-CODE TẠO HÀM
+
+```sql 
+CREATE FUNCTION [dbo].[fn_TinhTienPhatQuaHan] (
+    @NgayTraDuKien DATETIME,
+    @NgayTraThucTe DATETIME
+)
+RETURNS MONEY
+AS
+BEGIN
+    DECLARE @TienPhat MONEY = 0;
+    -- Tính số ngày trễ (nếu trả trước hoặc đúng hạn thì kết quả <= 0)
+    DECLARE @SoNgayTre INT = DATEDIFF(DAY, @NgayTraDuKien, @NgayTraThucTe);
+    
+    IF @SoNgayTre > 0
+        SET @TienPhat = @SoNgayTre * 5000; -- Phạt 5000đ cho mỗi ngày trễ
+        
+    RETURN @TienPhat;
+END;
+GO
+```
+
+-CODE KHAI THÁC 
+
+```sql
+-- Hiển thị danh sách phiếu mượn và số tiền phạt (giả sử nếu họ trả sách vào ngày hôm nay)
+SELECT 
+    MaPhieu, 
+    MaDocGia, 
+    NgayTraDuKien, 
+    GETDATE() AS NgayTraHomNay,
+    [dbo].[fn_TinhTienPhatQuaHan](NgayTraDuKien, GETDATE()) AS TienPhatDuKien
+FROM [PhieuMuon];
+GO
+```
+
+<img width="1920" height="1080" alt="Screenshot (205)" src="https://github.com/user-attachments/assets/a18c05c7-47ea-4886-8384-e7e4d5303883" />
+<p align="center">Hàm trả về giá trị</p>
+
+ - Inline Table-Valued Function
+
+-Yêu cầu: Cần một hàm để lấy nhanh "Lịch sử mượn sách" của một Độc giả cụ thể. Tham số truyền vào là MaDocGia. Hàm cần nối (JOIN) bảng Phiếu Mượn và Sách để lấy tên sách.
+
+-CODE TẠO HÀM 
+
+```sql
+CREATE FUNCTION [dbo].[fn_LichSuMuonSachCuaDocGia] (
+    @MaDocGia INT
+)
+RETURNS TABLE
+AS
+RETURN (
+    SELECT 
+        pm.MaPhieu, 
+        s.TenSach, 
+        pm.NgayMuon, 
+        pm.NgayTraDuKien
+    FROM [PhieuMuon] pm
+    INNER JOIN [Sach] s ON pm.MaSach = s.MaSach
+    WHERE pm.MaDocGia = @MaDocGia
+);
+GO
+```
+
+-CODE KHAI THÁC 
+
+```sql
+-- Lấy lịch sử mượn sách của Độc giả có MaDocGia = 1
+SELECT * FROM [dbo].[fn_LichSuMuonSachCuaDocGia](1);
+GO
+```
+
+<img width="1920" height="1080" alt="Screenshot (208)" src="https://github.com/user-attachments/assets/567e6bc9-0f7b-4c1f-a772-0764a5c0bc84" />
+
+- C. Multi-statement Table-Valued Function
+
+Yêu cầu: Cần xuất một "Báo cáo tổng hợp tình trạng Phiếu mượn". Báo cáo gồm: MaPhieu, MaDocGia, Tình trạng ("Trong hạn" hoặc "Đã quá hạn"), Số tiền phạt dự kiến. Do cần thiết lập trạng thái mặc định rồi mới kiểm tra và cập nhật trạng thái quá hạn, ta sử dụng biến bảng để xử lý nhiều bước.
+
+-CODE TẠO HÀM
+
+```sql
+CREATE FUNCTION [dbo].[fn_BaoCaoTinhTrangCacPhieuMuon] ()
+RETURNS @BaoCao TABLE (
+    MaPhieu INT,
+    MaDocGia INT,
+    TinhTrang NVARCHAR(50),
+    TienPhat MONEY
+)
+AS
+BEGIN
+    -- Bước 1: Đổ dữ liệu ban đầu vào biến bảng, mặc định giả định là "Trong hạn" và tiền phạt = 0
+    INSERT INTO @BaoCao (MaPhieu, MaDocGia, TinhTrang, TienPhat)
+    SELECT MaPhieu, MaDocGia, N'Trong hạn', 0
+    FROM [PhieuMuon];
+
+    -- Bước 2: Dùng UPDATE để sửa lại tình trạng của những phiếu đã bị lố ngày (quá hạn)
+    -- Tận dụng lại hàm Scalar đã tạo ở phần A để tính tiền phạt
+    UPDATE @BaoCao
+    SET 
+        TinhTrang = N'Đã quá hạn',
+        TienPhat = [dbo].[fn_TinhTienPhatQuaHan](pm.NgayTraDuKien, GETDATE())
+    FROM @BaoCao b
+    INNER JOIN [PhieuMuon] pm ON b.MaPhieu = pm.MaPhieu
+    WHERE pm.NgayTraDuKien < GETDATE(); 
+
+    -- Trả về bảng @BaoCao cuối cùng
+    RETURN;
+END;
+GO
+```
+
+ -CODE KHAI THÁC HÀM
+
+ ```sql
+-- Hiển thị toàn bộ báo cáo tình trạng phiếu mượn
+SELECT * FROM [dbo].[fn_BaoCaoTinhTrangCacPhieuMuon]();
+
+-- Hoặc chỉ lọc ra những người đang bị phạt tiền
+SELECT * FROM [dbo].[fn_BaoCaoTinhTrangCacPhieuMuon]() WHERE TienPhat > 0;
+GO
+```
+
+<img width="1920" height="1080" alt="Screenshot (209)" src="https://github.com/user-attachments/assets/ac23e419-d7dd-4966-a285-de669e7bf358" />

@@ -3,7 +3,7 @@
 - Họ và tên: Nguyễn Minh Hạnh
 - Mã sv: K235480106023
 - Lớp: K59KMT
-- YÊU CẦU CỦA ĐỀ: 
+- YÊU CẦU CỦA ĐỀ: Quản lý thư viện
 
      Thiết kế và khởi tạo một Database mới.
 
@@ -49,6 +49,7 @@ CREATE TABLE [DocGia] (
 <img width="1920" height="1080" alt="Screenshot (199)" src="https://github.com/user-attachments/assets/d4ea2f60-801c-46fb-96cb-b96bd3fcfbdd" />
 <p align="center">Tạo bảng DocGia</p>
 
+---
 
 - Bảng [Sach] (Quản lý kho tài liệu): * Lưu trữ danh mục các cuốn sách có trong thư viện. [MaSach] là khóa chính tự tăng.
 
@@ -72,6 +73,7 @@ CREATE TABLE [Sach] (
 <img width="1920" height="1080" alt="Screenshot (200)" src="https://github.com/user-attachments/assets/3cf6662a-440f-487c-b9ad-2c0ec1a63460" />
 <p align="center">Tạo bảng Sach</p>
 
+---
 
 - Bảng [PhieuMuon] (Quản lý giao dịch): Để xử lý mối quan hệ này trong cơ sở dữ liệu quan hệ, cần xây dựng bảng trung gian PhieuMuon. Bảng này có nhiệm vụ liên kết giữa độc giả và sách, đồng thời lưu trữ thông tin về từng lần mượn.
 
@@ -180,6 +182,18 @@ Ví dụ: Hàm DATEDIFF() có sẵn chỉ đếm được khoảng cách giữa 
 
 Yêu cầu: Hệ thống thư viện quy định nếu độc giả trả sách quá hạn sẽ bị phạt 5,000 VND / 1 ngày. Viết hàm truyền vào ngày trả dự kiến và ngày thực trả để tính ra số tiền phạt.
 
+Luồng xử lý dữ :
+
+Bước 1. Hàm nhận vào ngày trả dự kiến và ngày trả thực tế làm tham số đầu vào.
+
+Bước 2. Hệ thống tính toán khoảng thời gian chênh lệch (số ngày trễ) giữa hai mốc thời gian này bằng hàm DATEDIFF.
+
+Bước 3. Kiểm tra điều kiện logic: Nếu số ngày trễ lớn hơn 0 (tức là khách hàng trả sách quá hạn).
+
+Bước 4. Thực hiện phép tính nhân số ngày trễ với mức phạt quy định của thư viện (5.000 VNĐ/ngày) để ra tổng tiền phạt.
+
+Bước 5. Trả về kết quả là một giá trị duy nhất (kiểu MONEY) đại diện cho tổng số tiền phạt phải đóng.
+
 -CODE TẠO HÀM
 
 ```sql 
@@ -202,6 +216,9 @@ END;
 GO
 ```
 
+<img width="1920" height="1080" alt="Screenshot (202)" src="https://github.com/user-attachments/assets/4163c61e-c971-4bb2-a6c5-5c944338912c" />
+
+<p align="center">Hàm tính tiền phạt quá hạn </p>
 -CODE KHAI THÁC 
 
 ```sql
@@ -217,11 +234,35 @@ GO
 ```
 
 <img width="1920" height="1080" alt="Screenshot (205)" src="https://github.com/user-attachments/assets/a18c05c7-47ea-4886-8384-e7e4d5303883" />
-<p align="center">Hàm trả về giá trị</p>
+<p align="center">Hàm hiển thị danh sách phiếu mượn và số tiền </p>
+
+---
 
  - Inline Table-Valued Function
 
 -Yêu cầu: Cần một hàm để lấy nhanh "Lịch sử mượn sách" của một Độc giả cụ thể. Tham số truyền vào là MaDocGia. Hàm cần nối (JOIN) bảng Phiếu Mượn và Sách để lấy tên sách.
+
+Luồng xử lý dữ liệu:
+
+Bước 1. Hàm nhận vào mã độc giả làm tham số đầu vào.
+
+Bước 2. Hệ thống truy xuất dữ liệu từ bảng phiếu mượn (PhieuMuon) để lấy các thông tin liên quan đến các lần giao dịch mượn sách của độc giả.
+
+Bước 3. Đồng thời, hệ thống kết nối với bảng sách (Sach) để lấy thêm thông tin về tên sách tương ứng.
+
+Bước 4. Thực hiện liên kết giữa hai bảng thông qua mã sách (MaSach).
+
+Bước 5. Lọc dữ liệu theo mã độc giả đã truyền vào để chỉ lấy các giao dịch mượn/trả của độc giả đó.
+
+Bước 6. Trả về danh sách kết quả bao gồm:
+
+Mã phiếu mượn
+
+Tên sách
+
+Ngày mượn
+
+Ngày trả dự kiến
 
 -CODE TẠO HÀM 
 
@@ -243,6 +284,9 @@ RETURN (
 );
 GO
 ```
+<img width="1920" height="1080" alt="Screenshot (207)" src="https://github.com/user-attachments/assets/46f0df93-4c0f-47ab-8b23-b27bbaa45fde" />
+
+<p align="center">Hàm tạo lịch sử mượn sách </p>
 
 -CODE KHAI THÁC 
 
@@ -254,10 +298,35 @@ GO
 
 <img width="1920" height="1080" alt="Screenshot (208)" src="https://github.com/user-attachments/assets/567e6bc9-0f7b-4c1f-a772-0764a5c0bc84" />
 
+<p align="center">Lịch sử mượn sách của Độc giả </p>
+
+---
+
 - C. Multi-statement Table-Valued Function
 
 Yêu cầu: Cần xuất một "Báo cáo tổng hợp tình trạng Phiếu mượn". Báo cáo gồm: MaPhieu, MaDocGia, Tình trạng ("Trong hạn" hoặc "Đã quá hạn"), Số tiền phạt dự kiến. Do cần thiết lập trạng thái mặc định rồi mới kiểm tra và cập nhật trạng thái quá hạn, ta sử dụng biến bảng để xử lý nhiều bước.
 
+Luồng xử lý dữ liệu:
+
+Bước 1. Hệ thống khởi tạo một biến bảng (bảng tạm trong bộ nhớ) để định hình cấu trúc dữ liệu báo cáo trả về.
+
+Bước 2. Truy xuất toàn bộ dữ liệu giao dịch từ bảng phiếu mượn và chèn vào biến bảng, đồng thời thiết lập trạng thái mặc định ban đầu là "Trong hạn" và tiền phạt bằng 0.
+
+Bước 3. Hệ thống quét lại tập dữ liệu trong biến bảng và thực hiện so sánh ngày trả dự kiến của từng phiếu với ngày giờ hiện tại của hệ thống (GETDATE()).
+
+Bước 4. Lọc ra các phiếu có ngày trả dự kiến nhỏ hơn ngày hiện tại (phiếu vi phạm), thực hiện cập nhật (UPDATE) trạng thái của chúng thành "Đã quá hạn".
+
+Bước 5. Đồng thời, gọi ngược lại hàm Scalar Function (ở phần A) để tính toán tự động và cập nhật chính xác số tiền phạt cho các phiếu vi phạm đó.
+
+Bước 6. Trả về danh sách kết quả báo cáo cuối cùng bao gồm:
+
+Mã phiếu
+
+Mã độc giả
+
+Tình trạng (Trong hạn / Đã quá hạn)
+
+Tiền phạt
 -CODE TẠO HÀM
 
 ```sql
@@ -290,6 +359,7 @@ BEGIN
 END;
 GO
 ```
+<img width="1920" height="1080" alt="Screenshot (211)" src="https://github.com/user-attachments/assets/df95857a-64ba-46af-b504-1597d5b8f634" />
 
  -CODE KHAI THÁC HÀM
 
@@ -303,3 +373,7 @@ GO
 ```
 
 <img width="1920" height="1080" alt="Screenshot (209)" src="https://github.com/user-attachments/assets/ac23e419-d7dd-4966-a285-de669e7bf358" />
+
+### PHẦN 3: XÂY DỰNG STORE PROCEDURE
+
+1,Tìm hiểu về System Stored Procedure

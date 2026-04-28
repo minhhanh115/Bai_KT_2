@@ -3,13 +3,18 @@
 - Họ và tên: Nguyễn Minh Hạnh
 - Mã sv: K235480106023
 - Lớp: K59KMT
-- YÊU CẦU CỦA ĐỀ: Quản lý thư viện
+- Chủ đề: Quản lý thư viện
+- Yêu cầu đề bài:
 
-     Thiết kế và khởi tạo một Database mới.
+  1. Thiết kế và khởi tạo một Database mới: tạo ít nhất 3 bảng có mối quan hệ với nhau, sử dụng đa dạng các kiểu dữ liệu (INT, FLOAT, NVARCHAR, DATE, MONEY...), áp dụng các quy tắc Bướu Lạc Đà.
+  2.  Xây dụng Function: viết 01 Scalar Function (Hàm trả về một giá trị), viết 01 Inline Table-Valued Function, viết 01 Multi-statement Table-Valued Function
+  3.   Xây dựng Store Procedure: viết 01 Store Procedure đơn giản để thực hiện lệnh INSERT hoặc UPDATE dữ liệu, viết 01 Store Procedure có sử dụng tham số OUTPUT để trả về một giá trị tính toán, viết 01 Store Procedure trả về một tập kết quả (Result set) từ lệnh SELECT sau khi đã join nhiều bảng.
+  4.   Trigger và Xử lý logic nghiệp vụ: Viết 01 Trigger để tự động làm gì đó tại 1 bảng B khi mà dữ liệu thay đổi dữ liệu ở bảng A, Thử viết Trigger cho Bảng A.
+  5.    Cursor và Duyệt dữ liệu: Viết một đoạn script sử dụng CURSOR để duyệt qua danh sách của 1 câu lệnh SQL dạng SELECT, duyệt qua từng bản ghi, xử lý riêng từng bản ghi, tìm cách không sử dụng CURSOR để giải quyết bài toán mà em đã dùng CURSOR mới giải quyết được ở trên. thử so sánh tốc độ giữa có dùng cursor và không dùng cursor (nếu cùng kết quả) thì thời gian xử lý cái nào nhanh hơn.
+  
+- Giới thiệu về hệ thống quản lý thư viện:
 
-     Tạo ít nhất 3 bảng có mối quan hệ với nhau.
 
-     Sử dụng đa dạng các kiểu dữ liệu (INT, FLOAT, NVARCHAR, DATE, MONEY...).
 
      Áp dụng đúng quy tắc đặt tên Bướu Lạc Đà (CamelCase/PascalCase) và bọc tên bằng ngoặc vuông [ ].
 
@@ -47,7 +52,7 @@ CREATE TABLE [DocGia] (
 
 
 <img width="1920" height="1080" alt="Screenshot (199)" src="https://github.com/user-attachments/assets/d4ea2f60-801c-46fb-96cb-b96bd3fcfbdd" />
-<p align="center">Tạo bảng DocGia</p>
+<p align="center">Tạo bảng [DocGia]</p>
 
 ---
 
@@ -71,7 +76,7 @@ CREATE TABLE [Sach] (
 );
 ```
 <img width="1920" height="1080" alt="Screenshot (200)" src="https://github.com/user-attachments/assets/3cf6662a-440f-487c-b9ad-2c0ec1a63460" />
-<p align="center">Tạo bảng Sach</p>
+<p align="center">Tạo bảng [Sach]</p>
 
 ---
 
@@ -100,7 +105,7 @@ CREATE TABLE [PhieuMuon] (
 
 
 <img width="1920" height="1080" alt="Screenshot (201)" src="https://github.com/user-attachments/assets/3fc4ce2e-fd27-4fee-8d0a-1efef3799344" />
-<p align="center">Tạo bảng PhieuMuon</p>
+<p align="center">Tạo bảng [PhieuMuon]</p>
 
 3. Chèn dữ liệu vào các bảng.
    
@@ -327,6 +332,7 @@ Mã độc giả
 Tình trạng (Trong hạn / Đã quá hạn)
 
 Tiền phạt
+
 -CODE TẠO HÀM
 
 ```sql

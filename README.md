@@ -20,7 +20,7 @@
 
      Thiết lập và giải thích rõ các Khóa chính (PK), Khóa ngoại (FK) và Ràng buộc kiểm tra (CK).
 ### PHẦN 1: KHỞI TẠO CƠ SỞ DỮ LIỆU VÀ CÁC BẢNG
-1. Khởi tạo cơ sở dữ liệu
+**1. Khởi tạo cơ sở dữ liệu**
 
 <img width="1920" height="1080" alt="Screenshot (197)" src="https://github.com/user-attachments/assets/b05c9657-0565-4c0c-9649-9b95c42b700a" />
 
@@ -28,16 +28,17 @@
 
 Lựa chọn đề tài: Quản lí thư viện
 
-2. Tạo các bảng dữ liệu
+**2. Tạo các bảng dữ liệu**
 
-- Bảng [DocGia] (Quản lý người dùng): lưu trữ thông tin định danh của người mượn sách.
+a) Bảng [DocGia] (Quản lý người dùng)
 
+- lưu trữ thông tin định danh của người mượn sách.
 
-Khóa chính [MaDocGia] được cài đặt tự động tăng (IDENTITY) để tối ưu việc đánh chỉ mục và tạo liên kết.
+- Khóa chính [MaDocGia] được cài đặt tự động tăng (IDENTITY) để tối ưu việc đánh chỉ mục và tạo liên kết.
 
-Trường [HoTenDocGia] sử dụng kiểu NVARCHAR để lưu trữ chuỗi văn bản tiếng Việt có dấu một cách chính xác.
+- Trường [HoTenDocGia] sử dụng kiểu NVARCHAR để lưu trữ chuỗi văn bản tiếng Việt có dấu một cách chính xác.
 
-Trường [TienDatCoc] (kiểu MONEY, giá trị mặc định bằng 0). Đây là cơ sở để thực hiện các logic nghiệp vụ sau này (ví dụ: yêu cầu độc giả phải có số dư tiền cọc nhất định mới được phép mượn sách có giá trị cao, hoặc dùng để khấu trừ khi phạt trễ hạn).
+- Trường [TienDatCoc] (kiểu MONEY, giá trị mặc định bằng 0). Đây là cơ sở để thực hiện các logic nghiệp vụ sau này (ví dụ: yêu cầu độc giả phải có số dư tiền cọc nhất định mới được phép mượn sách có giá trị cao, hoặc dùng để khấu trừ khi phạt trễ hạn).
 
 ```sql
 CREATE TABLE [DocGia] (
@@ -56,13 +57,15 @@ CREATE TABLE [DocGia] (
 
 ---
 
-- Bảng [Sach] (Quản lý kho tài liệu): * Lưu trữ danh mục các cuốn sách có trong thư viện. [MaSach] là khóa chính tự tăng.
+b)  Bảng [Sach] (Quản lý kho tài liệu)
 
-Để đảm bảo dữ liệu hệ thống luôn "sạch" và tránh lỗi do người thao tác nhập liệu sai (Data entry errors), em đã thiết lập 2 Ràng buộc kiểm tra cứng (Check Constraint):
+- Lưu trữ danh mục các cuốn sách có trong thư viện. [MaSach] là khóa chính tự tăng.
 
-[CK_DiemDanhGia]: Ràng buộc điểm đánh giá của sách bắt buộc phải nằm trong thang điểm chuẩn từ 0.0 đến 10.0 (kiểu FLOAT).
+- Để đảm bảo dữ liệu hệ thống luôn "sạch" và tránh lỗi do người thao tác nhập liệu sai (Data entry errors), em đã thiết lập 2 Ràng buộc kiểm tra cứng (Check Constraint):
 
-[CK_NamXuatBan]: Đảm bảo tính logic về thời gian bằng cách sử dụng hàm YEAR(GETDATE()). Sách không thể có năm xuất bản lớn hơn thời điểm hệ thống hiện tại.
+- [CK_DiemDanhGia]: Ràng buộc điểm đánh giá của sách bắt buộc phải nằm trong thang điểm chuẩn từ 0.0 đến 10.0 (kiểu FLOAT).
+
+- [CK_NamXuatBan]: Đảm bảo tính logic về thời gian bằng cách sử dụng hàm YEAR(GETDATE()). Sách không thể có năm xuất bản lớn hơn thời điểm hệ thống hiện tại.
 ```sql
 CREATE TABLE [Sach] (
     [MaSach] INT IDENTITY(1,1) NOT NULL,
@@ -80,15 +83,17 @@ CREATE TABLE [Sach] (
 
 ---
 
-- Bảng [PhieuMuon] (Quản lý giao dịch): Để xử lý mối quan hệ này trong cơ sở dữ liệu quan hệ, cần xây dựng bảng trung gian PhieuMuon. Bảng này có nhiệm vụ liên kết giữa độc giả và sách, đồng thời lưu trữ thông tin về từng lần mượn.
+c) Bảng [PhieuMuon] (Quản lý giao dịch)
 
-Khóa chính [MaPhieu] Định danh duy nhất mỗi phiếu mượn.
+- Để xử lý mối quan hệ này trong cơ sở dữ liệu quan hệ, cần xây dựng bảng trung gian PhieuMuon. Bảng này có nhiệm vụ liên kết giữa độc giả và sách, đồng thời lưu trữ thông tin về từng lần mượn.
 
-Bảng sử dụng hai Khóa ngoại (Foreign Key) là [MaDocGia] và [MaSach] Liên kết với bảng DocGia và Sach → đảm bảo dữ liệu hợp lệ.
+ Khóa chính [MaPhieu] Định danh duy nhất mỗi phiếu mượn.
 
-Trường [NgayMuon] Đảm bảo ngày trả đúng logic (không trước ngày mượn).
+- Bảng sử dụng hai Khóa ngoại (Foreign Key) là [MaDocGia] và [MaSach] Liên kết với bảng DocGia và Sach → đảm bảo dữ liệu hợp lệ.
 
-Ràng buộc [CK_NgayTraHopLe] được thêm vào để khóa chặt logic thực tế: thời hạn trả dự kiến ([NgayTraDuKien]) không bao giờ được phép xảy ra trước thời điểm mượn sách.
+- Trường [NgayMuon] Đảm bảo ngày trả đúng logic (không trước ngày mượn).
+
+- Ràng buộc [CK_NgayTraHopLe] được thêm vào để khóa chặt logic thực tế: thời hạn trả dự kiến ([NgayTraDuKien]) không bao giờ được phép xảy ra trước thời điểm mượn sách.
 ```sql
 CREATE TABLE [PhieuMuon] (
     [MaPhieu] INT IDENTITY(1,1) NOT NULL,
@@ -107,7 +112,90 @@ CREATE TABLE [PhieuMuon] (
 <img width="1920" height="1080" alt="Screenshot (201)" src="https://github.com/user-attachments/assets/3fc4ce2e-fd27-4fee-8d0a-1efef3799344" />
 <p align="center">Tạo bảng [PhieuMuon]</p>
 
-3. Chèn dữ liệu vào các bảng.
+**3. Chèn dữ liệu vào các bảng.**
+
+
+```sql
+-- ---------------------------------------------------------------------------------
+-- 1. Thêm 20 dòng cho bảng [DocGia]
+-- ---------------------------------------------------------------------------------
+INSERT INTO [DocGia] ([HoTenDocGia], [NgaySinh], [TienDatCoc]) VALUES
+(N'Nguyễn Văn An', '2000-01-15', 50000),
+(N'Trần Thị Bích', '1999-05-20', 100000),
+(N'Lê Hoàng Cường', '2001-11-02', 0),
+(N'Phạm Thu Dung', '1998-03-12', 50000),
+(N'Hoàng Văn Em', '2002-07-25', 100000),
+(N'Đặng Thị Phương', '1995-12-10', 0),
+(N'Bùi Minh Trí', '2003-02-28', 150000),
+(N'Vũ Thị Hà', '1997-09-05', 50000),
+(N'Ngô Tuấn Anh', '2000-06-18', 0),
+(N'Lý Mỹ Ngọc', '1996-08-22', 50000),
+(N'Trần Trọng Đạt', '1999-04-14', 100000),
+(N'Nguyễn Thị Hoa', '2001-10-30', 50000),
+(N'Lê Đức Tài', '1998-01-08', 0),
+(N'Phan Thanh Tú', '2002-11-15', 100000),
+(N'Dương Tấn Phát', '1994-05-09', 150000),
+(N'Vương Cẩm Ly', '2003-07-11', 50000),
+(N'Hồ Bích Liên', '1997-03-27', 0),
+(N'Đỗ Bá Kiên', '1995-09-19', 50000),
+(N'Mai Xuân Lộc', '2000-12-05', 100000),
+(N'Trịnh Quốc Vượng', '1999-08-01', 50000);
+GO
+
+-- ---------------------------------------------------------------------------------
+-- 2. Thêm 20 dòng cho bảng [Sach]
+-- ---------------------------------------------------------------------------------
+INSERT INTO [Sach] ([TenSach], [GiaBan], [DiemDanhGia], [NamXuatBan]) VALUES
+(N'Đắc Nhân Tâm', 85000, 9.5, 2018),
+(N'Nhà Giả Kim', 75000, 9.0, 2019),
+(N'Tuổi Trẻ Đáng Giá Bao Nhiêu', 90000, 8.5, 2020),
+(N'Lược Sử Loài Người', 150000, 9.8, 2017),
+(N'Tội Ác Và Hình Phạt', 120000, 9.2, 2015),
+(N'Số Đỏ', 60000, 8.8, 2016),
+(N'Chí Phèo', 55000, 8.7, 2014),
+(N'Tôi Thấy Hoa Vàng Trên Cỏ Xanh', 100000, 9.1, 2018),
+(N'Mắt Biếc', 110000, 9.3, 2019),
+(N'Harry Potter và Hòn Đá Phù Thủy', 200000, 9.7, 2021),
+(N'Kỹ Năng Sống Dành Cho Sinh Viên', 65000, 7.5, 2022),
+(N'Lập Trình C Căn Bản', 180000, 8.0, 2023),
+(N'Cơ Sở Dữ Liệu SQL Server', 220000, 8.9, 2023),
+(N'Tư Duy Nhanh Và Chậm', 190000, 9.6, 2018),
+(N'Rừng Na Uy', 140000, 8.4, 2016),
+(N'Không Gia Đình', 135000, 9.0, 2017),
+(N'Suối Nguồn', 250000, 9.4, 2015),
+(N'Bố Già', 160000, 9.5, 2019),
+(N'Đại Gia Gatsby', 95000, 8.6, 2020),
+(N'Những Người Khốn Khổ', 300000, 9.8, 2014);
+GO
+
+-- ---------------------------------------------------------------------------------
+-- 3. Thêm 20 dòng cho bảng [PhieuMuon]
+-- Dữ liệu giả lập có các phiếu mượn trong quá khứ, hiện tại và có phiếu bị trễ hạn.
+-- Chú ý: MaDocGia (1-20), MaSach (1-20). NgayTraDuKien luôn >= NgayMuon
+-- ---------------------------------------------------------------------------------
+INSERT INTO [PhieuMuon] ([MaDocGia], [MaSach], [NgayMuon], [NgayTraDuKien]) VALUES
+(1, 3, '2023-10-01', '2023-10-15'), -- Phiếu trong quá khứ (sẽ bị coi là quá hạn nếu chưa trả)
+(2, 5, '2023-11-10', '2023-11-20'), 
+(3, 1, '2024-01-05', '2024-01-15'),
+(1, 10, '2024-02-01', '2024-02-10'),
+(4, 13, '2024-02-15', '2024-02-28'),
+(5, 7, '2024-03-01', '2024-03-10'),
+(6, 8, '2024-03-15', '2024-03-25'),
+(7, 2, '2024-03-20', '2024-03-30'),
+(8, 15, '2024-04-01', '2024-04-15'),
+(9, 12, '2024-04-05', '2024-04-20'),
+(10, 4, '2024-04-10', '2024-04-25'),
+(11, 18, '2024-04-12', '2024-04-26'),
+(12, 19, '2024-04-15', '2024-04-25'),
+(13, 20, '2024-04-18', '2024-04-30'),
+(1, 6, '2024-04-20', '2024-05-05'),  -- Phiếu mới mượn (Trong hạn)
+(14, 9, '2024-04-21', '2024-05-10'),
+(15, 11, '2024-04-22', '2024-05-06'),
+(16, 14, '2024-04-23', '2024-05-07'),
+(17, 16, '2024-04-23', '2024-05-07'),
+(18, 17, '2024-04-23', '2024-05-15');
+GO
+```
    
 <img width="1920" height="1080" alt="Screenshot (203)" src="https://github.com/user-attachments/assets/8b4c2f82-eba7-4622-a166-149ab3682085" />
 
@@ -115,7 +203,7 @@ CREATE TABLE [PhieuMuon] (
 
 ### PHẦN 2: XÂY DỰNG FUNCTION 
 
-1. Các hàm có sẵn (Built-in Functions) trong SQL Server
+**1. Các hàm có sẵn (Built-in Functions) trong SQL Server**
 
 - Trong SQL Server, các hàm có sẵn (built-in functions) được chia thành nhiều nhóm khác nhau dựa trên mục đích sử dụng, bao gồm:
 
@@ -151,7 +239,7 @@ FROM [Sach]
 ORDER BY NEWID();
 ```
 
-2. Hàm do người dùng tự viết (User-Defined Functions - UDF)
+**2. Hàm do người dùng tự viết (User-Defined Functions - UDF)**
 
 - Mục đích: UDF được tạo ra để đóng gói (encapsulate) các đoạn logic tính toán phức tạp hoặc các câu truy vấn được sử dụng lặp đi lặp lại. Việc này giúp mã SQL gọn gàng, tăng tính tái sử dụng và dễ dàng bảo trì.
 
@@ -181,13 +269,13 @@ Bởi vì các hàm có sẵn chỉ thực hiện các thao tác nền tảng (c
 
 Ví dụ: Hàm DATEDIFF() có sẵn chỉ đếm được khoảng cách giữa 2 ngày. Nhưng hệ thống thư viện yêu cầu: "Trễ hạn bị phạt 5.000đ/ngày". Lúc này bắt buộc người lập trình phải kết hợp DATEDIFF với các phép toán nhân/chia để viết thành một UDF tên là fn_TinhTienPhat().
 
-3. Thực hành viết Function cho Database Quản lý Thư Viện
+**3. Thực hành viết Function cho Database Quản lý Thư Viện**
 
--  Scalar Function (Hàm trả về một giá trị)
+a) Scalar Function (Hàm trả về một giá trị)
 
-Yêu cầu: Hệ thống thư viện quy định nếu độc giả trả sách quá hạn sẽ bị phạt 5,000 VND / 1 ngày. Viết hàm truyền vào ngày trả dự kiến và ngày thực trả để tính ra số tiền phạt.
+- Yêu cầu: Hệ thống thư viện quy định nếu độc giả trả sách quá hạn sẽ bị phạt 5,000 VND / 1 ngày. Viết hàm truyền vào ngày trả dự kiến và ngày thực trả để tính ra số tiền phạt.
 
-Luồng xử lý dữ :
+- Luồng xử lý dữ :
 
 Bước 1. Hàm nhận vào ngày trả dự kiến và ngày trả thực tế làm tham số đầu vào.
 
@@ -199,7 +287,7 @@ Bước 4. Thực hiện phép tính nhân số ngày trễ với mức phạt q
 
 Bước 5. Trả về kết quả là một giá trị duy nhất (kiểu MONEY) đại diện cho tổng số tiền phạt phải đóng.
 
--CODE TẠO HÀM
+- CODE TẠO HÀM
 
 ```sql 
 CREATE FUNCTION [dbo].[fn_TinhTienPhatQuaHan] (
@@ -224,7 +312,7 @@ GO
 <img width="1920" height="1080" alt="Screenshot (202)" src="https://github.com/user-attachments/assets/4163c61e-c971-4bb2-a6c5-5c944338912c" />
 
 <p align="center">Hàm tính tiền phạt quá hạn </p>
--CODE KHAI THÁC 
+- CODE KHAI THÁC 
 
 ```sql
 -- Hiển thị danh sách phiếu mượn và số tiền phạt (giả sử nếu họ trả sách vào ngày hôm nay)
@@ -243,11 +331,11 @@ GO
 
 ---
 
- - Inline Table-Valued Function
+ b) Inline Table-Valued Function
 
--Yêu cầu: Cần một hàm để lấy nhanh "Lịch sử mượn sách" của một Độc giả cụ thể. Tham số truyền vào là MaDocGia. Hàm cần nối (JOIN) bảng Phiếu Mượn và Sách để lấy tên sách.
+- Yêu cầu: Cần một hàm để lấy nhanh "Lịch sử mượn sách" của một Độc giả cụ thể. Tham số truyền vào là MaDocGia. Hàm cần nối (JOIN) bảng Phiếu Mượn và Sách để lấy tên sách.
 
-Luồng xử lý dữ liệu:
+- Luồng xử lý dữ liệu:
 
 Bước 1. Hàm nhận vào mã độc giả làm tham số đầu vào.
 
@@ -269,7 +357,7 @@ Ngày mượn
 
 Ngày trả dự kiến
 
--CODE TẠO HÀM 
+- CODE TẠO HÀM 
 
 ```sql
 CREATE FUNCTION [dbo].[fn_LichSuMuonSachCuaDocGia] (
@@ -293,7 +381,7 @@ GO
 
 <p align="center">Hàm tạo lịch sử mượn sách </p>
 
--CODE KHAI THÁC 
+- CODE KHAI THÁC 
 
 ```sql
 -- Lấy lịch sử mượn sách của Độc giả có MaDocGia = 1
@@ -307,11 +395,11 @@ GO
 
 ---
 
-- C. Multi-statement Table-Valued Function
+c) Multi-statement Table-Valued Function
 
-Yêu cầu: Cần xuất một "Báo cáo tổng hợp tình trạng Phiếu mượn". Báo cáo gồm: MaPhieu, MaDocGia, Tình trạng ("Trong hạn" hoặc "Đã quá hạn"), Số tiền phạt dự kiến. Do cần thiết lập trạng thái mặc định rồi mới kiểm tra và cập nhật trạng thái quá hạn, ta sử dụng biến bảng để xử lý nhiều bước.
+- Yêu cầu: Cần xuất một "Báo cáo tổng hợp tình trạng Phiếu mượn". Báo cáo gồm: MaPhieu, MaDocGia, Tình trạng ("Trong hạn" hoặc "Đã quá hạn"), Số tiền phạt dự kiến. Do cần thiết lập trạng thái mặc định rồi mới kiểm tra và cập nhật trạng thái quá hạn, ta sử dụng biến bảng để xử lý nhiều bước.
 
-Luồng xử lý dữ liệu:
+- Luồng xử lý dữ liệu:
 
 Bước 1. Hệ thống khởi tạo một biến bảng (bảng tạm trong bộ nhớ) để định hình cấu trúc dữ liệu báo cáo trả về.
 
@@ -333,7 +421,7 @@ Tình trạng (Trong hạn / Đã quá hạn)
 
 Tiền phạt
 
--CODE TẠO HÀM
+- CODE TẠO HÀM
 
 ```sql
 CREATE FUNCTION [dbo].[fn_BaoCaoTinhTrangCacPhieuMuon] ()
@@ -367,7 +455,7 @@ GO
 ```
 <img width="1920" height="1080" alt="Screenshot (211)" src="https://github.com/user-attachments/assets/df95857a-64ba-46af-b504-1597d5b8f634" />
 
- -CODE KHAI THÁC HÀM
+ - CODE KHAI THÁC HÀM
 
  ```sql
 -- Hiển thị toàn bộ báo cáo tình trạng phiếu mượn
@@ -381,5 +469,10 @@ GO
 <img width="1920" height="1080" alt="Screenshot (209)" src="https://github.com/user-attachments/assets/ac23e419-d7dd-4966-a285-de669e7bf358" />
 
 ### PHẦN 3: XÂY DỰNG STORE PROCEDURE
+
+**1. Tìm hiểu về System Stored Procedures**
+System Stored Procedures (SP hệ thống) là những thủ tục được Microsoft viết sẵn để quản lý, cấu hình và giám sát database. Thường có tiền tố sp_, được lưu trong database master nhưng có thể gọi từ bất kỳ đâu.
+
+Dưới đây là một  System SP phổ biến nhất:
 
 1,Tìm hiểu về System Stored Procedure

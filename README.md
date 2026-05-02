@@ -471,8 +471,145 @@ GO
 ### PHẦN 3: XÂY DỰNG STORE PROCEDURE
 
 **1. Tìm hiểu về System Stored Procedures**
-System Stored Procedures (SP hệ thống) là những thủ tục được Microsoft viết sẵn để quản lý, cấu hình và giám sát database. Thường có tiền tố sp_, được lưu trong database master nhưng có thể gọi từ bất kỳ đâu.
 
-Dưới đây là một  System SP phổ biến nhất:
+Trong SQL Server, System Stored Procedures (tiền tố sp_) là những thủ tục được viết sẵn và lưu trong database master. Chúng đóng vai trò như các "công cụ quản trị" giúp DBA (Database Administrator) hoặc Developer kiểm tra hệ thống, cấu hình và lấy metadata một cách nhanh chóng thay vì phải viết các câu truy vấn phức tạp vào các bảng hệ thống.
 
-1,Tìm hiểu về System Stored Procedure
+Một số System SP mang tính ứng dụng cao (Góc nhìn Developer):
+
+- sp_helptext
+
+Cách dùng: EXEC sp_helptext 'Ten_SP_Hoac_View'
+
+Đặc sắc: Đây là lệnh "soi mã nguồn". Khi bạn tiếp nhận một database cũ và muốn biết một View hay Stored Procedure hoạt động ra sao, lệnh này sẽ in ra toàn bộ source code ban đầu của đối tượng đó.
+
+- sp_spaceused
+
+Cách dùng: EXEC sp_spaceused 'DocGia'
+
+Đặc sắc: Báo cáo cực nhanh dung lượng ổ cứng mà một bảng đang chiếm dụng (có bao nhiêu row, tốn bao nhiêu KB data, bao nhiêu KB index). Rất hữu ích khi tối ưu hóa database.
+
+- sp_depends
+
+Cách dùng: EXEC sp_depends 'Sach'
+
+Đặc sắc: "Tra cứu gia phả". Nó cho biết bảng Sach đang được sử dụng bởi những View, Function hay SP nào. Khi bạn muốn sửa bảng Sach (ví dụ đổi tên cột), bạn chạy lệnh này để biết mình cần phải sửa code ở những SP nào khác để không bị lỗi dây chuyền.
+
+**2. Viết Store Procedure kiểm tra điều kiện logic(INSERT/UPDATE)**
+
+- Ý tưởng: "Kiểm duyệt Mượn Sách Chặt Chẽ"
+
+- Quy trình xử lý: Khi tạo phiếu mượn mới (INSERT), hệ thống sẽ không cho mượn vô điều kiện. Nó phải kiểm tra 2 lớp bảo mật:
+
+-Độc giả có đang chứa sách quá hạn nào không? (Nếu có -> Cấm mượn thêm).
+
+-Cuốn sách định mượn có giá trị lớn hơn Tiền Đặt Cọc của độc giả không? (Nếu Giá bán > Tiền cọc -> Báo lỗi rủi ro cao, không cho mượn).
+
+- Code SQL
+
+ ```sql
+CREATE PROCEDURE [dbo].[sp_TaoPhieuMuonKiemDuyet]
+    @MaDocGia INT,
+    @MaSach INT,
+    @SoNgayMuon INT
+AS
+BEGIN
+    DECLARE @TienCoc MONEY;
+    DECLARE @GiaSach MONEY;
+    DECLARE @DangNoQuaHan INT;
+
+    -- 1. Lấy thông tin tiền cọc và giá sách
+    SELECT @TienCoc = TienDatCoc FROM [DocGia] WHERE MaDocGia = @MaDocGia;
+    SELECT @GiaSach = GiaBan FROM [Sach] WHERE MaSach = @MaSach;
+
+    -- 2. Kiểm tra xem độc giả có đang giữ sách nào quá hạn không
+    SELECT @DangNoQuaHan = COUNT(*) 
+    FROM [PhieuMuon] 
+    WHERE MaDocGia = @MaDocGia AND NgayTraDuKien < GETDATE();
+
+    -- KIỂM TRA LOGIC
+    IF @DangNoQuaHan > 0
+    BEGIN
+        PRINT N'TỪ CHỐI: Độc giả đang có sách quá hạn chưa trả. Vui lòng trả sách trước khi mượn mới!';
+        RETURN;
+    END
+
+    IF @GiaSach > @TienCoc
+    BEGIN
+        PRINT N'TỪ CHỐI: Sách này có giá trị (' + CAST(@GiaSach AS NVARCHAR) + N') cao hơn tiền đặt cọc (' + CAST(@TienCoc AS NVARCHAR) + N'). Yêu cầu nạp thêm cọc!';
+        RETURN;
+    END
+
+    -- Nếu qua hết bài test, tiến hành INSERT
+    DECLARE @NgayTra DATETIME = DATEADD(DAY, @SoNgayMuon, GETDATE());
+    INSERT INTO [PhieuMuon] (MaDocGia, MaSach, NgayMuon, NgayTraDuKien)
+    VALUES (@MaDocGia, @MaSach, GETDATE(), @NgayTra);
+
+    PRINT N'THÀNH CÔNG: Đã duyệt và tạo phiếu mượn!';
+END;
+GO
+ ```
+
+<img width="1920" height="1080" alt="Screenshot (212)" src="https://github.com/user-attachments/assets/d10a1e14-d133-4c2b-a0c5-110531c4592a" />
+<p align="center">Kiểm tra và đối chiếu thông tin mượn sách của độc giả</p>
+
+**3. Viết Store Procedure có sử dụng tham số OUTPUT để trả về một giá trị tính toán**
+
+- Ý tưởng : "Tính toán Hạn mức (Quota) mượn sách còn lại"
+
+- Quy trình xử lý: Thư viện quy định cứ 50.000 VNĐ tiền cọc thì được phép mượn 1 cuốn sách cùng lúc. SP này sẽ đếm số sách độc giả đang cầm, đối chiếu với tiền cọc, từ đó tính toán xem họ còn được phép mượn tối đa bao nhiêu cuốn nữa và xuất ra biến OUTPUT. (Rất hay dùng để hiển thị trên app/web cho người dùng xem).
+- Code SQL
+```sql
+CREATE PROCEDURE [dbo].[sp_TinhHanMucMuonConLai]
+    @MaDocGia INT,
+    @SoSachDuocMuonThem INT OUTPUT -- Biến đầu ra chứa kết quả
+AS
+BEGIN
+    DECLARE @TienCoc MONEY = 0;
+    DECLARE @SoSachDangMuon INT = 0;
+    DECLARE @TongHanMuc INT = 0;
+
+    -- Lấy tiền cọc
+    SELECT @TienCoc = ISNULL(TienDatCoc, 0) FROM [DocGia] WHERE MaDocGia = @MaDocGia;
+    
+    -- Đếm số sách đang mượn (giả sử các phiếu trong DB là chưa trả)
+    SELECT @SoSachDangMuon = COUNT(*) FROM [PhieuMuon] WHERE MaDocGia = @MaDocGia;
+
+    -- Tính tổng hạn mức (Cứ 50k = 1 cuốn)
+    SET @TongHanMuc = CAST((@TienCoc / 50000) AS INT);
+
+    -- Tính số lượng còn lại
+    SET @SoSachDuocMuonThem = @TongHanMuc - @SoSachDangMuon;
+
+    -- Nếu mượn lố hoặc cọc không đủ, trả về 0 (không bị âm)
+    IF @SoSachDuocMuonThem < 0 
+        SET @SoSachDuocMuonThem = 0;
+END;
+GO
+
+-- CÁCH GỌI VÀ SỬ DỤNG HÀM OUTPUT:
+/*
+DECLARE @KetQua INT;
+EXEC [dbo].[sp_TinhHanMucMuonConLai] @MaDocGia = 1, @SoSachDuocMuonThem = @KetQua OUTPUT;
+PRINT N'Độc giả này còn được mượn thêm: ' + CAST(@KetQua AS NVARCHAR) + N' cuốn sách.';
+*/
+```
+
+<img width="1920" height="1080" alt="Screenshot (213)" src="https://github.com/user-attachments/assets/4d49f524-aabf-4a48-aa7f-9bbf85a4b608" />
+<p align="center">Đối chiếu hạn mức của độc giả</p>
+
+**4. Viết 01 Store Procedure trả về một tập kết quả từ lệnh SELECT**
+
+- Ý tưởng : "Báo cáo Truy Tìm Phạt Nguội & Ước tính thiệt hại"
+
+- Quy trình xử lý: Hệ thống cần cung cấp cho nhân viên thư viện một chức năng cho phép chỉ với một thao tác, có thể liệt kê danh sách các độc giả trả sách trễ nhiều nhất.
+
+Chức năng này được xây dựng dưới dạng Stored Procedure, thực hiện:
+
+-Kết nối dữ liệu từ 3 bảng liên quan (JOIN)
+
+-Sử dụng lệnh SELECT để:  
+    Tính số ngày trả trễ.
+    
+Dự báo số tiền phạt (5.000 VNĐ/ngày)
+
+Kết quả trả về giúp nhân viên thư viện nhanh chóng xác định các trường hợp quá hạn nghiêm trọng và chủ động liên hệ nhắc nhở hoặc xử lý.

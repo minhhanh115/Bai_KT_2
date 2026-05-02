@@ -241,11 +241,11 @@ ORDER BY NEWID();
 
 **2. Hàm do người dùng tự viết (User-Defined Functions - UDF)**
 
-- Mục đích: UDF được tạo ra để đóng gói (encapsulate) các đoạn logic tính toán phức tạp hoặc các câu truy vấn được sử dụng lặp đi lặp lại. Việc này giúp mã SQL gọn gàng, tăng tính tái sử dụng và dễ dàng bảo trì.
+a) Mục đích: UDF được tạo ra để đóng gói (encapsulate) các đoạn logic tính toán phức tạp hoặc các câu truy vấn được sử dụng lặp đi lặp lại. Việc này giúp mã SQL gọn gàng, tăng tính tái sử dụng và dễ dàng bảo trì.
 
-- Phân loại và thời điểm sử dụng:
+b) Phân loại và thời điểm sử dụng:
 
--Scalar Function (Hàm vô hướng): 
+- Scalar Function (Hàm vô hướng): 
 
   Đặc điểm: Nhận vào tham số và trả về đúng 1 giá trị đơn lẻ (INT, VARCHAR, MONEY,...).
 
@@ -257,17 +257,17 @@ ORDER BY NEWID();
 
   Khi nào dùng: Dùng như một VIEW nhưng ưu việt hơn vì có thể truyền được tham số vào để lọc dữ liệu. Hiệu năng của iTVF rất tốt.
 
--Multi-statement Table-Valued Function - mTVF (Hàm đa câu lệnh trả về bảng):
+- Multi-statement Table-Valued Function - mTVF (Hàm đa câu lệnh trả về bảng):
 
   Đặc điểm: Trả về 1 bảng (Table). Bên trong hàm có thể chứa nhiều câu lệnh xử lý phức tạp (IF/ELSE, WHILE, biến bảng tạm DECLARE @Table TABLE).
 
   Khi nào dùng: Khi cần phải qua nhiều bước xử lý trung gian (thêm, sửa, xóa trên bảng tạm) mới ra được tập kết quả cuối cùng.
 
-- Tại sao có nhiều hàm Built-in rồi mà vẫn cần tự viết function riêng?
+c) Tại sao có nhiều hàm Built-in rồi mà vẫn cần tự viết function riêng?
 
-Bởi vì các hàm có sẵn chỉ thực hiện các thao tác nền tảng (cộng trừ, đếm ngày, cắt chuỗi...). Chúng không thể hiểu được nghiệp vụ (Business Logic) của bài toán.
+- Bởi vì các hàm có sẵn chỉ thực hiện các thao tác nền tảng (cộng trừ, đếm ngày, cắt chuỗi...). Chúng không thể hiểu được nghiệp vụ (Business Logic) của bài toán.
 
-Ví dụ: Hàm DATEDIFF() có sẵn chỉ đếm được khoảng cách giữa 2 ngày. Nhưng hệ thống thư viện yêu cầu: "Trễ hạn bị phạt 5.000đ/ngày". Lúc này bắt buộc người lập trình phải kết hợp DATEDIFF với các phép toán nhân/chia để viết thành một UDF tên là fn_TinhTienPhat().
+- Ví dụ: Hàm DATEDIFF() có sẵn chỉ đếm được khoảng cách giữa 2 ngày. Nhưng hệ thống thư viện yêu cầu: "Trễ hạn bị phạt 5.000đ/ngày". Lúc này bắt buộc người lập trình phải kết hợp DATEDIFF với các phép toán nhân/chia để viết thành một UDF tên là fn_TinhTienPhat().
 
 **3. Thực hành viết Function cho Database Quản lý Thư Viện**
 
@@ -552,6 +552,24 @@ GO
 <img width="1920" height="1080" alt="Screenshot (212)" src="https://github.com/user-attachments/assets/d10a1e14-d133-4c2b-a0c5-110531c4592a" />
 <p align="center">Kiểm tra và đối chiếu thông tin mượn sách của độc giả</p>
 
+- Kiểm thử chương 
+```sql
+-- Kịch bản 1: Thất bại do Độc giả đang có sách mượn quá hạn (Nguyễn Văn An - MaDocGia 1)
+PRINT N'--- KỊCH BẢN 1: ---';
+EXEC [dbo].[sp_TaoPhieuMuonKiemDuyet] @MaDocGia = 1, @MaSach = 2, @SoNgayMuon = 7;
+
+-- Kịch bản 2: Thất bại do Sách đắt hơn Tiền đặt cọc (Vũ Thị Hà mã 8 có cọc 50k, mượn Harry Potter 200k)
+PRINT N'--- KỊCH BẢN 2: ---';
+EXEC [dbo].[sp_TaoPhieuMuonKiemDuyet] @MaDocGia = 8, @MaSach = 10, @SoNgayMuon = 7;
+
+-- Kịch bản 3: Thành công (Mai Xuân Lộc mã 19 có cọc 100k, chưa nợ sách nào, mượn Số Đỏ giá 60k)
+PRINT N'--- KỊCH BẢN 3: ---';
+EXEC [dbo].[sp_TaoPhieuMuonKiemDuyet] @MaDocGia = 19, @MaSach = 6, @SoNgayMuon = 7;
+GO
+```
+<img width="1920" height="1080" alt="Screenshot (227)" src="https://github.com/user-attachments/assets/b1fbb00a-3801-45f1-b0c8-9bbafc09861c" />
+<p align="center">Kiểm thử điều kiện mượn sách của 3 độc giả</p>
+
 **3. Viết Store Procedure có sử dụng tham số OUTPUT để trả về một giá trị tính toán**
 
 - Ý tưởng : "Tính toán Hạn mức (Quota) mượn sách còn lại"
@@ -585,17 +603,21 @@ BEGIN
         SET @SoSachDuocMuonThem = 0;
 END;
 GO
-
--- CÁCH GỌI VÀ SỬ DỤNG HÀM OUTPUT:
-/*
-DECLARE @KetQua INT;
-EXEC [dbo].[sp_TinhHanMucMuonConLai] @MaDocGia = 1, @SoSachDuocMuonThem = @KetQua OUTPUT;
-PRINT N'Độc giả này còn được mượn thêm: ' + CAST(@KetQua AS NVARCHAR) + N' cuốn sách.';
-*/
 ```
 
 <img width="1920" height="1080" alt="Screenshot (213)" src="https://github.com/user-attachments/assets/4d49f524-aabf-4a48-aa7f-9bbf85a4b608" />
 <p align="center">Đối chiếu hạn mức của độc giả</p>
+
+- Kiểm thử chương trình
+```sql
+DECLARE @KetQua INT;
+-- Gọi thực thi SP cho Độc giả 2 (Trần Thị Bích - Cọc 100k -> Mức đa 2 cuốn. Đang mượn 1 cuốn)
+EXEC [dbo].[sp_TinhHanMucMuonConLai] 
+    @MaDocGia = 2, 
+    @SoSachDuocMuonThem = @KetQua OUTPUT;
+```
+<img width="1920" height="1080" alt="Screenshot (229)" src="https://github.com/user-attachments/assets/d2e01f14-6732-434a-9785-6b6a93d7db69" />
+<p align="center">Đối chiếu hạn mức của độc giả Trần Thị Bích</p>
 
 **4. Viết 01 Store Procedure trả về một tập kết quả từ lệnh SELECT**
 
@@ -608,7 +630,8 @@ Chức năng này được xây dựng dưới dạng Stored Procedure, thực h
 -Kết nối dữ liệu từ 3 bảng liên quan (JOIN)
 
 -Sử dụng lệnh SELECT để:  
-    Tính số ngày trả trễ.
+    
+Tính số ngày trả trễ.
     
 Dự báo số tiền phạt (5.000 VNĐ/ngày)
 
@@ -640,9 +663,276 @@ BEGIN
     ORDER BY SoNgayTreHan DESC;
 END;
 GO
-
--- CÁCH GỌI ĐỂ XEM KẾT QUẢ:
-/*
-EXEC [dbo].[sp_BaoCaoTruyTimSachQuaHan];
-*/
 ```
+<img width="1920" height="1080" alt="Screenshot (214)" src="https://github.com/user-attachments/assets/8bf04cf9-f077-4c27-8e95-baedb6324eb9" />
+<p align="center"></p>
+
+- Kiểm thử SQL
+```sql
+EXEC [dbo].[sp_BaoCaoTruyTimSachQuaHan];
+GO
+```
+<img width="1920" height="1080" alt="Screenshot (230)" src="https://github.com/user-attachments/assets/1cb9fb54-1050-4874-8fb0-53fc4842de75" />
+<p align="center">Kiểm tra các sách quá hạn</p>
+
+ ### Phần 4: Trigger và Xử lý logic nghiệp vụ ###
+ **1. Viết 01 Trigger xử lý logic thực tế**
+- Ý tưởng logic : "Quản lý Tồn kho Sách tự động"
+
+- Thực tế: Trong thư viện, mỗi cuốn sách sẽ có số lượng nhất định. Khi một thủ thư lập Phiếu Mượn mới (Bảng A: PhieuMuon), hệ thống phải tự động vào kho sách (Bảng B: Sach) để trừ đi 1 cuốn. Nếu kho đã hết sách (Số lượng = 0) mà thủ thư vẫn cố tình tạo phiếu mượn, hệ thống phải báo lỗi và hủy thao tác ngay lập tức.
+
+- Code SQL
+```sql
+ALTER TABLE [Sach] ADD SoLuongTon INT DEFAULT 5;
+GO
+UPDATE [Sach] SET SoLuongTon = 5;
+GO
+
+CREATE TRIGGER [dbo].[trg_MuonSach_TruTonKho]
+ON [PhieuMuon]
+AFTER INSERT 
+AS
+BEGIN
+    DECLARE @MaSachVuaMuon INT;
+    DECLARE @SoLuongHienTai INT;
+
+    SELECT @MaSachVuaMuon = MaSach FROM inserted;
+
+    SELECT @SoLuongHienTai = SoLuongTon FROM [Sach] WHERE MaSach = @MaSachVuaMuon;
+
+    IF @SoLuongHienTai <= 0
+    BEGIN
+        RAISERROR(N'LỖI: Cuốn sách này đã hết trong kho. Không thể cho mượn!', 16, 1);
+        ROLLBACK TRANSACTION;
+        RETURN;
+    END
+    ELSE
+    BEGIN
+        UPDATE [Sach]
+        SET SoLuongTon = SoLuongTon - 1
+        WHERE MaSach = @MaSachVuaMuon;
+        
+        PRINT N'HỆ THỐNG: Đã tự động trừ 1 cuốn sách trong kho!';
+    END
+END;
+GO
+```
+<img width="1920" height="1080" alt="Screenshot (220)" src="https://github.com/user-attachments/assets/ac07db9a-6757-4e8d-b221-df4714ec6251" />
+<p align="center">Tạo Trigger Quản Lý Tồn Kho Sách tự động</p>
+
+- Kiểm thử Trigger đã tạo
+```sql
+INSERT INTO [PhieuMuon] (MaDocGia, MaSach, NgayMuon, NgayTraDuKien)
+VALUES (1, 1, GETDATE(), GETDATE() + 7);
+```
+<img width="1920" height="1080" alt="Screenshot (233)" src="https://github.com/user-attachments/assets/03c6a9d4-4558-4344-8a71-bf59154e1ccb" />
+<p align="center">Kiểm thử MaSach= 1</p>
+<img width="1920" height="1080" alt="Screenshot (233)" src="https://github.com/user-attachments/assets/46497f0f-3056-4034-a7fe-6c5590e5beed" />
+<p align="center">Kiểm tra lại bảng Sách, sẽ thấy cột SoLuongTon của MaSach = 1 bị giảm xuống còn 1.</p>
+
+**2.Thực nghiệm Trigger chéo (A cập nhật B, B cập nhật lại A) trên dữ liệu thực tế**
+- Ta sẽ sử dụng 2 bảng thực tế là [PhieuMuon] (Bảng A) và [DocGia] (Bảng B) với một kịch bản logic giả định như sau:
+
+Khi Phiếu mượn của một người được gia hạn (thực hiện lệnh UPDATE trên [PhieuMuon]), hệ thống ưu đãi tự động cộng thêm tiền cọc cho Độc giả đó (thực hiện lệnh UPDATE trên [DocGia]).
+
+Mặt khác, khi tiền cọc của một người thay đổi (thực hiện lệnh UPDATE trên [DocGia]), hệ thống lại tự động gia hạn thêm 1 ngày cho tất cả Phiếu mượn của họ (thực hiện lệnh UPDATE trên [PhieuMuon]).
+
+- Code SQL
+```sql
+-- Trigger 1: Bảng Phiếu Mượn cập nhật Bảng Độc Giả
+CREATE TRIGGER trg_PhieuMuon_CapNhat_DocGia
+ON [PhieuMuon]
+AFTER UPDATE
+AS
+BEGIN
+    PRINT N'Trigger trên PhieuMuon đang chạy... tiến hành cập nhật DocGia';
+    
+    -- Thưởng 100đ tiền cọc cho độc giả có phiếu mượn vừa được cập nhật
+    UPDATE d
+    SET d.TienDatCoc = d.TienDatCoc + 100
+    FROM [DocGia] d
+    INNER JOIN inserted i ON d.MaDocGia = i.MaDocGia;
+END;
+GO
+
+-- Trigger 2: Bảng Độc Giả cập nhật lại Bảng Phiếu Mượn
+CREATE TRIGGER trg_DocGia_CapNhat_PhieuMuon
+ON [DocGia]
+AFTER UPDATE
+AS
+BEGIN
+    PRINT N'Trigger trên DocGia đang chạy... tiến hành cập nhật PhieuMuon';
+    
+    -- Gia hạn thêm 1 ngày cho phiếu mượn của độc giả vừa được cập nhật tiền cọc
+    UPDATE p
+    SET p.NgayTraDuKien = DATEADD(DAY, 1, p.NgayTraDuKien)
+    FROM [PhieuMuon] p
+    INNER JOIN inserted i ON p.MaDocGia = i.MaDocGia;
+END;
+GO
+```
+<img width="1920" height="1080" alt="Screenshot (223)" src="https://github.com/user-attachments/assets/5dc99ff0-03a1-421e-81ed-ef2f1b72f60d" />
+<p align="center">Tạo Trigger chéo nhau</p>
+
+- Khởi động vòng lặp
+```sql
+UPDATE [PhieuMuon] 
+SET NgayTraDuKien = '2024-12-31' 
+WHERE MaPhieu = 1;
+```
+<img width="1920" height="1080" alt="Screenshot (234)" src="https://github.com/user-attachments/assets/61daa516-d25b-4ee5-98c9-3768d2c8791a" />
+<p align="center">Gia hạn thử 1 phiếu mượn (MaPhieu=1)</p>
+
+a) Quan sát thông báo của hệ thống (Result / Messages):
+
+- Ngay khi chạy lệnh UPDATE ở trên, hệ thống không kết thúc ngay mà tab Messages trong SQL Server sẽ in ra các dòng chữ chạy liên tục như đánh bóng bàn:
+
+Trigger trên PhieuMuon đang chạy... tiến hành cập nhật DocGia
+
+Trigger trên DocGia đang chạy... tiến hành cập nhật PhieuMuon
+
+Trigger trên PhieuMuon đang chạy... tiến hành cập nhật DocGia
+
+(Lặp lại 32 lần)
+
+Msg 217, Level 16, State 1, Procedure trg_PhieuMuon_CapNhat_DocGia, Line ...
+
+Maximum stored procedure, function, trigger, or view nesting level exceeded (limit 32).
+
+b) Phân tích chi tiết và Nhận xét sự cố
+
+- Phân tích cơ chế hoạt động của vòng lặp (Trigger Đệ Quy - Recursive Trigger):
+  
+Lỗi phát sinh do luồng dữ liệu bị thiết kế quay vòng tròn. Trình tự phá hoại của hệ thống diễn ra như sau:
+
+Bước 1: Lệnh UPDATE [PhieuMuon] thủ công được thực thi. Bảng [PhieuMuon] ghi nhận có sự thay đổi dữ liệu.
+
+Bước 2: Sự thay đổi này "đánh thức" Trigger thứ nhất (trg_PhieuMuon_CapNhat_DocGia). Nó chạy đoạn mã bên trong và tự động bắn ra một lệnh UPDATE [DocGia] (cộng 100đ tiền cọc).
+
+Bước 3: Lúc này, Bảng [DocGia] ghi nhận có thay đổi dữ liệu. Nó lập tức "đánh thức" Trigger thứ hai (trg_DocGia_CapNhat_PhieuMuon).
+
+Bước 4: Trigger thứ hai chạy và lại bắn ra tự động một lệnh UPDATE [PhieuMuon] (cộng thêm 1 ngày trả).
+
+Bước 5: Bảng [PhieuMuon] lại bị thay đổi. Nó quay lại đánh thức Trigger thứ nhất (lặp lại Bước 2). Quá trình cứ thế tiếp diễn mãi mãi không có điểm dừng.
+
+- Giải thích thông báo lỗi "limit 32": Rất may mắn, Microsoft SQL Server được trang bị một cơ chế tự vệ mặc định gọi là Nested Triggers Configuration. Engine của SQL Server nhận diện được vòng lặp vô hạn này và sẽ tự động "cắt cầu dao" ngắt toàn bộ tiến trình khi mức độ gọi lồng nhau vượt qua độ sâu tầng 32 (nesting level 32). Đồng thời, hệ thống ném ra lỗi Msg 217 và tự động ROLLBACK (hủy bỏ) toàn bộ chuỗi giao dịch để bảo vệ tài nguyên RAM và CPU của máy chủ khỏi bị treo cứng.
+
+- Nhận xét kết luận:
+1. Trong thực tế thiết kế cơ sở dữ liệu, việc để 2 bảng tự động cập nhật chéo nhau qua lại bằng Trigger bị coi là một Anti-pattern (Lỗi thiết kế tồi và nguy hiểm). Nó tiềm ẩn rủi ro sập hệ thống và làm suy giảm hiệu suất (Performance bottleneck) trầm trọng vì các transaction liên tục giữ khóa (lock) dữ liệu của nhau.
+2. Cách khắc phục: * Rà soát lại Business Logic (Nghiệp vụ), đảm bảo luồng cập nhật dữ liệu tự động chỉ đi theo 1 chiều (ví dụ: A cập nhật B, B cập nhật C), tuyệt đối cấm thiết kế luồng quay ngược.
+
+-Sử dụng hàm UPDATE(Tên_Cột) bên trong Trigger để giới hạn: Trigger chỉ được kích hoạt nếu đúng một cột cụ thể bị thay đổi, tránh việc trigger chạy lan tràn khi cập nhật các cột không liên quan.
+
+-Dùng hàm TRIGGER_NESTLEVEL() ngay đầu Trigger. Nếu giá trị trả về lớn hơn 1 mức cho phép (VD: > 2), lập tức cho lệnh RETURN để chủ động ép dừng chuỗi phản ứng dây chuyền.
+
+### Phần 5: Cursor và Duyệt dữ liệu ###
+**1. Viết script sử dụng CURSOR giải quyết logic nghiệp vụ**
+
+- Ý tưởng: "Chương trình Tri ân (Cashback) cho Độc giả thân thiết"
+
+- Tình huống: Nhân dịp kỷ niệm thành lập thư viện, ban quản lý quyết định chạy một chương trình khuyến mãi: Hệ thống sẽ quét lịch sử mượn sách. Những độc giả nào đã mượn các cuốn sách có tổng giá trị cộng dồn từ 200.000 VNĐ trở lên sẽ được tặng thưởng 10% tổng giá trị đó, cộng trực tiếp vào [TienDatCoc].
+
+- Luồng xử lý tổng quát bằng CURSOR:
+
+Bước 1. Khai báo các biến cục bộ (@MaDocGia, @TongGiaTriSach, @TienThuong) để lưu dữ liệu khi duyệt.
+
+Bước 2. Khai báo một Cursor lấy danh sách các Độc giả và Tổng giá trị sách họ đã mượn (Sử dụng SUM và GROUP BY kết hợp HAVING SUM >= 200000).
+
+Bước 3. Mở Cursor (OPEN) để nạp tập dữ liệu này vào bộ nhớ.
+
+Bước 4. Đọc dòng dữ liệu đầu tiên (FETCH NEXT).
+
+Bước 5. Sử dụng vòng lặp WHILE duyệt từng độc giả: Tính tiền thưởng = 10% tổng giá trị sách, sau đó gọi lệnh UPDATE để cộng tiền vào bảng [DocGia]. In thông báo ra màn hình.
+
+Bước 6. Đóng (CLOSE) và giải phóng bộ nhớ (DEALLOCATE) cho Cursor.
+
+- Code SQL thực thi:
+```sql
+USE [QuanLyThuVien_K235480106023];
+GO
+SET STATISTICS TIME ON;
+GO
+PRINT N'--- BẮT ĐẦU CHẠY BẰNG CURSOR (CASHBACK) ---';
+DECLARE @MaDocGia INT;
+DECLARE @TongGiaTriSach MONEY;
+DECLARE @TienThuong MONEY;
+-- Lấy những người mượn sách tổng giá trị >= 200k
+DECLARE cur_TriAn CURSOR FOR
+    SELECT pm.MaDocGia, SUM(s.GiaBan) AS TongGiaTri
+    FROM [PhieuMuon] pm
+    INNER JOIN [Sach] s ON pm.MaSach = s.MaSach
+    GROUP BY pm.MaDocGia
+    HAVING SUM(s.GiaBan) >= 200000;
+OPEN cur_TriAn;
+FETCH NEXT FROM cur_TriAn INTO @MaDocGia, @TongGiaTriSach;
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    -- Tính 10% tiền thưởng
+    SET @TienThuong = @TongGiaTriSach * 0.1;
+    -- Cập nhật tiền cọc
+    UPDATE [DocGia]
+    SET TienDatCoc = TienDatCoc + @TienThuong
+    WHERE MaDocGia = @MaDocGia;
+    PRINT N'Đã thưởng ' + CAST(@TienThuong AS NVARCHAR) + N' VNĐ cho Độc giả mã số ' + CAST(@MaDocGia AS NVARCHAR);
+    FETCH NEXT FROM cur_TriAn INTO @MaDocGia, @TongGiaTriSach;
+END;
+CLOSE cur_TriAn;
+DEALLOCATE cur_TriAn;
+PRINT N'--- HOÀN THÀNH CHẠY BẰNG CURSOR ---';
+GO
+```
+<img width="1920" height="1080" alt="Screenshot (238)" src="https://github.com/user-attachments/assets/18b176ac-7330-4606-9a7d-156b0e1c1f91" />
+<p align="center">Tab Messages hiển thị thông báo cộng thưởng cho độc giả </p>
+
+**2. Giải quyết bài toán không dùng CURSOR và So sánh tốc độ**
+
+Bài toán Tri ân cộng tiền ở trên hoàn toàn có thể được giải quyết bằng một câu lệnh UPDATE kết hợp với CTE (Common Table Expression - Bảng tạm dùng 1 lần) cực kỳ ngắn gọn mà không cần duyệt từng dòng.
+
+- Code SQL KHÔNG dùng CURSOR
+```sql
+PRINT N'--- BẮT ĐẦU CHẠY BẰNG SET-BASED SQL ---';
+WITH CTE_KhachVIP AS (
+    SELECT pm.MaDocGia, SUM(s.GiaBan) * 0.1 AS TienThuong
+    FROM [PhieuMuon] pm
+    INNER JOIN [Sach] s ON pm.MaSach = s.MaSach
+    GROUP BY pm.MaDocGia
+    HAVING SUM(s.GiaBan) >= 200000
+)
+UPDATE d
+SET d.TienDatCoc = d.TienDatCoc + c.TienThuong
+FROM [DocGia] d
+INNER JOIN CTE_KhachVIP c ON d.MaDocGia = c.MaDocGia;
+
+PRINT N'--- HOÀN THÀNH CHẠY BẰNG SET-BASED SQL ---';
+GO
+```
+<img width="1920" height="1080" alt="Screenshot (241)" src="https://github.com/user-attachments/assets/ba9b9df4-6eab-4b2a-b369-b453e87795f2" />
+<p align="center">Thời gian thực thi khi sử dụng truy vấn SQL thuần (Set-based) - Chỉ tốn 1 lần quét bảng duy nhất</p>
+
+**Phân tích và Nhận xét**
+
+- Về mặt hiệu năng: Câu lệnh SQL thông thường (Set-based) chạy nhanh và tốn ít CPU hơn hẳn so với CURSOR.
+
+- Giải thích nguyên nhân:  Khi dùng CURSOR, hệ thống làm việc theo cơ chế "RBAR" (Row By Agonizing Row - Duyệt khổ sở từng dòng). Nó gọi hàm UPDATE nhiều lần bằng với số lượng khách VIP (như ở Mục 1 là gọi 4 lần riêng biệt). Quá trình này bắt SQL Server liên tục mở/đóng Transaction và chuyển đổi ngữ cảnh, gây quá tải.
+
+- Khi dùng Set-based (SQL thuần), Engine của SQL Server thực hiện gom nhóm (GROUP BY), liên kết (JOIN) trên RAM và tiến hành ghi đè (UPDATE) toàn bộ dữ liệu xuống ổ cứng trong đúng 1 lô duy nhất (Batch processing). Kết quả (4 rows affected) được báo cáo trong một lần chạy duy nhất. Hiệu suất được tối ưu tuyệt đối.
+
+**3. Bắt buộc phải dùng CURSOR**
+Dựa trên nguyên lý hoạt động của cơ sở dữ liệu, SQL thuần túy (Set-based) thao tác trên "Tập hợp" (cập nhật tất cả cùng lúc). Nó sẽ gần như bó tay trước các bài toán yêu cầu "Xử lý số dư luân phiên" (Running Balance / Sequential Allocation).
+
+- Logic bài toán: "Thanh toán nợ luân phiên từ cũ đến mới"
+
+- Tình huống nghiệp vụ: Độc giả Nguyễn Văn A có 3 phiếu mượn đều bị trễ hạn, lần lượt nợ: 40k (Phiếu 1), 50k (Phiếu 2), 30k (Phiếu 3). Tổng nợ là 120k.
+Hôm nay, anh A đem 100.000 VNĐ đến thư viện nộp để khắc phục. Yêu cầu của thư viện là: Dùng số tiền 100k này để cấn trừ lần lượt cho các Phiếu từ cũ nhất đến mới nhất.
+
+- Kịch bản mong đợi:
+1. Trừ 40k cho Phiếu 1 -> Phiếu 1 hết nợ. Số dư còn: 60k.
+2. Trừ 50k cho Phiếu 2 -> Phiếu 2 hết nợ. Số dư còn: 10k.
+3. Trừ nốt 10k cho Phiếu 3 -> Phiếu 3 vẫn còn nợ 20k. Số dư hết (0đ). Tiến trình dừng lại.
+
+- Tại sao SQL (Set-based) rất khó giải quyết?
+Lệnh UPDATE thông thường tác động lên cả 3 phiếu cùng một lúc. Trong ngôn ngữ SQL chuẩn, không có cách nào tự nhiên để truyền một biến @SoDu = 100k vào dòng thứ nhất, làm phép trừ, rồi lấy "số dư còn lại" (carry-over) truyền tiếp xuống dòng thứ 2 trong cùng một câu lệnh UPDATE đơn lẻ. Sự phụ thuộc của dòng sau vào kết quả tính toán của dòng trước phá vỡ nguyên lý của tập hợp.
+
+- Giải pháp hoàn hảo bằng CURSOR:
+Bài toán này sinh ra là để dành cho CURSOR. Ta chỉ cần dùng biến @SoDu = 100000, mở một Cursor duyệt các phiếu quá hạn của Nguyễn Văn A theo thứ tự ORDER BY NgayMuon ASC (cũ lên trước).
+Trong vòng lặp WHILE, nếu @SoDu > 0, ta lấy tiền nợ của phiếu hiện tại đem trừ đi, cập nhật trạng thái phiếu, cập nhật lại biến @SoDu và đẩy tiếp xuống dòng sau. Quá trình kiểm soát logic này diễn ra tuyến tính, chính xác và cực kỳ dễ hiểu.

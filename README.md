@@ -613,3 +613,36 @@ Chức năng này được xây dựng dưới dạng Stored Procedure, thực h
 Dự báo số tiền phạt (5.000 VNĐ/ngày)
 
 Kết quả trả về giúp nhân viên thư viện nhanh chóng xác định các trường hợp quá hạn nghiêm trọng và chủ động liên hệ nhắc nhở hoặc xử lý.
+
+- Code SQL
+```sql
+CREATE PROCEDURE [dbo].[sp_BaoCaoTruyTimSachQuaHan]
+AS
+BEGIN
+    -- Trả về 1 Result Set chi tiết
+    SELECT 
+        pm.MaPhieu,
+        dg.HoTenDocGia,
+        s.TenSach,
+        pm.NgayTraDuKien,
+        -- Tính số ngày đã trễ hạn tính tới hôm nay
+        DATEDIFF(DAY, pm.NgayTraDuKien, GETDATE()) AS SoNgayTreHan,
+        -- Tính tiền phạt (5000đ/ngày)
+        DATEDIFF(DAY, pm.NgayTraDuKien, GETDATE()) * 5000 AS UocTinhTienPhat,
+        -- Đánh giá rủi ro
+        IIF(DATEDIFF(DAY, pm.NgayTraDuKien, GETDATE()) > 30, N'Rủi ro mất sách', N'Gọi điện nhắc nhở') AS HanhDongDeXuat
+    FROM [PhieuMuon] pm
+    INNER JOIN [DocGia] dg ON pm.MaDocGia = dg.MaDocGia
+    INNER JOIN [Sach] s ON pm.MaSach = s.MaSach
+    -- Chỉ lọc những phiếu đã quá hạn
+    WHERE pm.NgayTraDuKien < GETDATE()
+    -- Sắp xếp: Ai trễ lâu nhất (tiền phạt cao nhất) đẩy lên đầu tiên
+    ORDER BY SoNgayTreHan DESC;
+END;
+GO
+
+-- CÁCH GỌI ĐỂ XEM KẾT QUẢ:
+/*
+EXEC [dbo].[sp_BaoCaoTruyTimSachQuaHan];
+*/
+```

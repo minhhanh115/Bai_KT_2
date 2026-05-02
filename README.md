@@ -3,30 +3,43 @@
 - Họ và tên: Nguyễn Minh Hạnh
 - Mã sv: K235480106023
 - Lớp: K59KMT
-- Chủ đề: Quản lý thư viện
-- Yêu cầu đề bài:
-
-  1. Thiết kế và khởi tạo một Database mới: tạo ít nhất 3 bảng có mối quan hệ với nhau, sử dụng đa dạng các kiểu dữ liệu (INT, FLOAT, NVARCHAR, DATE, MONEY...), áp dụng các quy tắc Bướu Lạc Đà.
-  2.  Xây dụng Function: viết 01 Scalar Function (Hàm trả về một giá trị), viết 01 Inline Table-Valued Function, viết 01 Multi-statement Table-Valued Function
-  3.   Xây dựng Store Procedure: viết 01 Store Procedure đơn giản để thực hiện lệnh INSERT hoặc UPDATE dữ liệu, viết 01 Store Procedure có sử dụng tham số OUTPUT để trả về một giá trị tính toán, viết 01 Store Procedure trả về một tập kết quả (Result set) từ lệnh SELECT sau khi đã join nhiều bảng.
-  4.   Trigger và Xử lý logic nghiệp vụ: Viết 01 Trigger để tự động làm gì đó tại 1 bảng B khi mà dữ liệu thay đổi dữ liệu ở bảng A, Thử viết Trigger cho Bảng A.
-  5.    Cursor và Duyệt dữ liệu: Viết một đoạn script sử dụng CURSOR để duyệt qua danh sách của 1 câu lệnh SQL dạng SELECT, duyệt qua từng bản ghi, xử lý riêng từng bản ghi, tìm cách không sử dụng CURSOR để giải quyết bài toán mà em đã dùng CURSOR mới giải quyết được ở trên. thử so sánh tốc độ giữa có dùng cursor và không dùng cursor (nếu cùng kết quả) thì thời gian xử lý cái nào nhanh hơn.
   
-- Giới thiệu về hệ thống quản lý thư viện:
+**Yêu cầu đề bài**
 
+**ĐỀ TÀI: QUẢN LÝ THƯ VIỆN**
 
+  Thực hiện xây dựng một hệ thống quản lý cửa hàng mỹ phẩm hoàn chỉnh trên SQL Server, đáp ứng đầy đủ các yêu cầu của bài kiểm tra.
 
-     Áp dụng đúng quy tắc đặt tên Bướu Lạc Đà (CamelCase/PascalCase) và bọc tên bằng ngoặc vuông [ ].
+Toàn bộ quá trình thực hiện phải được ghi lại bằng các screenshot minh họa. Mỗi hình ảnh cần đi kèm câu lệnh SQL tương ứng và phần chú thích rõ ràng về chức năng, mục đích xử lý cũng như kết quả đạt được.
 
-     Thiết lập và giải thích rõ các Khóa chính (PK), Khóa ngoại (FK) và Ràng buộc kiểm tra (CK).
+Bài tập được nộp dưới dạng GitHub Repository (public) gồm hai thành phần chính:
+
+README.md: chứa toàn bộ nội dung báo cáo, hình ảnh minh họa và giải thích chi tiết  
+baikiemtra2.sql: chứa toàn bộ mã SQL sử dụng trong bài làm  
+  
+**Giới thiệu về hệ thống quản lý thư viện**
+- Hệ thống tập trung xây dựng Cơ sở dữ liệu "Quản lý Thư viện" trên nền tảng SQL Server. Mục tiêu của hệ thống là quản lý chặt chẽ thông tin Độc giả, Kho sách và quy trình Mượn/Trả tài liệu.
+ Không chỉ dừng lại ở việc lưu trữ dữ liệu cơ bản, hệ thống còn được thiết kế như một phần mềm quản lý thu nhỏ, tích hợp trực tiếp các nghiệp vụ tự động hóa vào tầng cơ sở dữ liệu như: tính tiền phạt trễ hạn, kiểm duyệt hạn mức mượn sách, tự động trừ tồn kho và thanh toán nợ luân phiên. Điều này giúp giảm thiểu tối đa sai sót từ con người và tối ưu hóa công tác quản trị.
+
+- Hệ thống được phát triển theo hướng Mô-đun hóa và Bảo vệ toàn vẹn dữ liệu từ gốc, trải qua 5 bước thiết kế logic:
+
+1. Thiết kế Schema & Ràng buộc: Xây dựng 3 bảng cốt lõi (DocGia, Sach, PhieuMuon) kết hợp hệ thống khóa (PK, FK) và ràng buộc (CHECK) để chặn dữ liệu rác ngay từ lúc nhập liệu.
+
+2. Đóng gói logic tính toán (Functions): Viết các hàm tự định nghĩa (UDF) để xử lý các phép tính nghiệp vụ đặc thù (VD: tính toán tiền phạt), giúp mã nguồn gọn gàng và dễ tái sử dụng.
+
+3. Kiểm duyệt giao dịch (Stored Procedures): Thiết lập các SP đóng vai trò như "cổng kiểm duyệt" để ràng buộc điều kiện (kiểm tra tiền cọc, nợ xấu) trước khi cho phép lập phiếu mượn mới.
+
+4. Tự động hóa ngầm (Triggers): Ứng dụng Trigger để tự động hóa các tác vụ nền như cập nhật số lượng tồn kho sách; đồng thời thực nghiệm và kiểm soát rủi ro vòng lặp đệ quy.
+
+5. Xử lý dữ liệu tuần tự (Cursors): Sử dụng vòng lặp Cursor để giải quyết triệt để các bài toán phân bổ tài nguyên phức tạp như "Thanh toán nợ luân phiên" (FIFO) mà lệnh SQL tập hợp (Set-based) thông thường rất khó xử lý.
+
+ Mỗi đối tượng trong SQL Server (Table, Function, SP, Trigger, Cursor) đều được khai thác đúng thế mạnh đặc thù, tạo thành một hệ thống mượt mà, bảo mật và mang tính tự động hóa cao.
 ### PHẦN 1: KHỞI TẠO CƠ SỞ DỮ LIỆU VÀ CÁC BẢNG
 **1. Khởi tạo cơ sở dữ liệu**
 
 <img width="1920" height="1080" alt="Screenshot (197)" src="https://github.com/user-attachments/assets/b05c9657-0565-4c0c-9649-9b95c42b700a" />
 
 <p align="center">Tạo Database</p>
-
-Lựa chọn đề tài: Quản lí thư viện
 
 **2. Tạo các bảng dữ liệu**
 

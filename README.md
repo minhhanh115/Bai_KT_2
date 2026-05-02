@@ -8,7 +8,7 @@
 
 **ĐỀ TÀI: QUẢN LÝ THƯ VIỆN**
 
-  Thực hiện xây dựng một hệ thống quản lý cửa hàng mỹ phẩm hoàn chỉnh trên SQL Server, đáp ứng đầy đủ các yêu cầu của bài kiểm tra.
+  Thực hiện xây dựng một hệ thống quản lý thư viện hoàn chỉnh trên SQL Server, đáp ứng đầy đủ các yêu cầu của bài kiểm tra.
 
 Toàn bộ quá trình thực hiện phải được ghi lại bằng các screenshot minh họa. Mỗi hình ảnh cần đi kèm câu lệnh SQL tương ứng và phần chú thích rõ ràng về chức năng, mục đích xử lý cũng như kết quả đạt được.
 

@@ -21,7 +21,7 @@ baikiemtra2.sql: chứa toàn bộ mã SQL sử dụng trong bài làm
 - Hệ thống tập trung xây dựng Cơ sở dữ liệu "Quản lý Thư viện" trên nền tảng SQL Server. Mục tiêu của hệ thống là quản lý chặt chẽ thông tin Độc giả, Kho sách và quy trình Mượn/Trả tài liệu.
  Không chỉ dừng lại ở việc lưu trữ dữ liệu cơ bản, hệ thống còn được thiết kế như một phần mềm quản lý thu nhỏ, tích hợp trực tiếp các nghiệp vụ tự động hóa vào tầng cơ sở dữ liệu như: tính tiền phạt trễ hạn, kiểm duyệt hạn mức mượn sách, tự động trừ tồn kho và thanh toán nợ luân phiên. Điều này giúp giảm thiểu tối đa sai sót từ con người và tối ưu hóa công tác quản trị.
 
-- Hệ thống được phát triển theo hướng Mô-đun hóa và Bảo vệ toàn vẹn dữ liệu từ gốc, trải qua 5 bước thiết kế logic:
+- Hệ thống được phát triển qua 5 bước thiết kế logic:
 
 1. Thiết kế Schema & Ràng buộc: Xây dựng 3 bảng cốt lõi (DocGia, Sach, PhieuMuon) kết hợp hệ thống khóa (PK, FK) và ràng buộc (CHECK) để chặn dữ liệu rác ngay từ lúc nhập liệu.
 
